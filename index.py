@@ -58,3 +58,22 @@ def main():
         return jsonify({"ID error": str(e)})
 
 
+#속도 보냄 // 원래 값과 비교해서 
+@app.route('/measure', methods=['GET'])
+def measure():
+    try:
+        # 3초 동안의 최대 속도 측정
+        max_speed = 0
+        start_time = time.time()
+
+        while time.time() - start_time < 3:
+            current_speed = measure_speed()
+            max_speed = max(max_speed, current_speed)
+            time.sleep(0.1)  # 0.1초 간격으로 속도를 측정
+
+        # 프론트엔드에 최대 속도를 응답으로 전송
+        return jsonify({"max_speed": max_speed, "sports_name": sports_name, "user_id": user_id})
+
+    except Exception as e:
+        return jsonify({"MESR error": str(e)})
+
