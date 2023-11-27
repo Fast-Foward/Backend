@@ -1,5 +1,7 @@
 import RPi.GPIO as GPIO
 import time
+from flask import Flask, request, jsonify
+import sqlite3
 
 v = 0  # 속도
 vmax = 0  # 최대 속도
@@ -14,7 +16,7 @@ def measure_speed():
     f = 0.0  # 주파수
 
     while GPIO.input(Sigpin):
-        pass
+        pass    
     while not GPIO.input(Sigpin):
         pass
 
@@ -37,3 +39,22 @@ try:
 
 except KeyboardInterrupt:
     GPIO.cleanup()
+    
+
+#ID 저장
+@app.route('/main', methods=['POST'])
+def main():
+    try:
+        # POST 요청에서 'value' 필드의 값을 받음
+        received_value = request.json.get('value')
+
+        # 데이터베이스에 받은 값을 'Sports' 테이블의 'value_received' 열에 저장
+        cursor.execute("INSERT INTO Sports (Id) VALUES (?)", (received_value,))
+        conn.commit()
+
+        return jsonify({"message": "ID값이 성공적으로 저장되었습니다.", "received_value": received_value})
+
+    except Exception as e:
+        return jsonify({"ID error": str(e)})
+
+
