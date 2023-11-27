@@ -71,6 +71,19 @@ def measure():
             max_speed = max(max_speed, current_speed)
             time.sleep(0.1)  # 0.1초 간격으로 속도를 측정
 
+        # 프론트엔드에서 보낸 Id와 스포츠 이름 가져오기
+        user_id = request.args.get('Id')
+        sports_name = request.args.get('sports')
+
+        # 현재 스포츠 값 가져오기
+        cursor.execute(f"SELECT {sports_name} FROM Sports WHERE Id=?", (user_id,))
+        current_sports_value = cursor.fetchone()[0]
+
+        # 만약 max_speed가 현재 스포츠 값보다 크다면 업데이트
+        if max_speed > current_sports_value:
+            cursor.execute(f"UPDATE Sports SET {sports_name} = ? WHERE Id=?", (max_speed, user_id))
+            conn.commit()
+
         # 프론트엔드에 최대 속도를 응답으로 전송
         return jsonify({"max_speed": max_speed, "sports_name": sports_name, "user_id": user_id})
 
