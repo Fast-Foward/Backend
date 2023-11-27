@@ -90,3 +90,22 @@ def measure():
     except Exception as e:
         return jsonify({"MESR error": str(e)})
 
+#rank
+@app.route('/rank', methods=['GET'])
+def rank():
+    try:
+        # 프론트엔드에서 보낸 종목 이름 가져오기
+        sports_name = request.args.get('sports')
+
+        # 속도가 높은 순서로 정렬된 결과 가져오기
+        cursor.execute(f"SELECT Id, {sports_name} FROM Sports ORDER BY {sports_name} DESC")
+        high_to_low_data = cursor.fetchall()
+
+        # 프론트엔드에 속도가 높은 순서로 정렬된 데이터를 응답으로 전송
+        return jsonify({
+            "high_to_low_data": high_to_low_data,
+            "sports_name": sports_name
+        })
+
+    except Exception as e:
+        return jsonify({"Rank error": str(e)})
