@@ -7,4 +7,3 @@ rows = cur.fetchall()
 for row in rows:
     print(row)
 conn.commit()
-conn.close()

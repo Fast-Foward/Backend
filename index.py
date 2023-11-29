@@ -2,11 +2,16 @@ import RPi.GPIO as GPIO
 import time
 from flask import Flask, request, jsonify
 import sqlite3
+import pymysql
 
+conn = pymysql.connect(host='localhost', user='yeseong', password='qwer1234', db='fastfoward')
+
+app = Flask(__name__)
+
+# GPIO 및 속도 측정 함수 초기화
 v = 0  # 속도
-vmax = 0  # 최대 속도
+vamx = 0 #최대속도
 Sigpin = 8  # GPIO.BOARD 기준으로 라즈베리 파이 14번 핀에 해당하는 번호 (물리적>인 핀 번호에 맞게 변경)
-
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(Sigpin, GPIO.IN)
 
@@ -22,7 +27,7 @@ def measure_speed():
 
     t1 = time.time()
     while GPIO.input(Sigpin):
-                pass
+        pass
     t2 = time.time()
 
     T = (t2 - t1) * 1e6
@@ -31,34 +36,34 @@ def measure_speed():
 
     return v  # 현재 속도 반환
 
-try:
-    while True:
-        current_speed = measure_speed()
-        print(f"현재 속도: {current_speed} km/h")
-        time.sleep(0.5)
+# SQLite 데이터베이스 초기화
+#conn = sqlite3.connect('your_database_name.db')  # 데이터베이스 파일명을 적절히 변경
+#cursor = conn.cursor()
 
-except KeyboardInterrupt:
-    GPIO.cleanup()
-    
-
-#ID 저장
+# ID 저장
 @app.route('/main', methods=['POST'])
 def main():
     try:
+        cursor = conn.cursor()
         # POST 요청에서 'value' 필드의 값을 받음
         received_value = request.json.get('value')
 
+        print("Received value:", received_value)  # Debugging print statement
+
         # 데이터베이스에 받은 값을 'Sports' 테이블의 'value_received' 열에 저장
-        cursor.execute("INSERT INTO Sports (Id) VALUES (?)", (received_value,))
+        query = f"INSERT INTO Sports (Id) VALUES ('{received_value}')"
+        print("SQL query before execution:", query)  # Debugging print statement
+        cursor.execute(query)
         conn.commit()
+
+        print("SQL query executed successfully:", query)
 
         return jsonify({"message": "ID값이 성공적으로 저장되었습니다.", "received_value": received_value})
 
     except Exception as e:
         return jsonify({"ID error": str(e)})
 
-
-#속도 보냄 // 원래 값과 비교해서 
+# 속도 보냄 // 원래 값과 비교해서 
 @app.route('/measure', methods=['GET'])
 def measure():
     try:
@@ -90,7 +95,6 @@ def measure():
     except Exception as e:
         return jsonify({"MESR error": str(e)})
 
-#rank
 @app.route('/rank', methods=['GET'])
 def rank():
     try:
@@ -109,3 +113,6 @@ def rank():
 
     except Exception as e:
         return jsonify({"Rank error": str(e)})
+
+if __name__ == '__main__':
+   app.run(host='0.0.0.0', port=5000)  # 적절한 호스트 및 포트로 변경
