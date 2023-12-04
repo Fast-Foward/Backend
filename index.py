@@ -116,3 +116,20 @@ def rank():
     except Exception as e:
         return jsonify({"Rank error": str(e)}), 500
     
+def measure_speed():
+    global v
+    while GPIO.input(Sigpin) == GPIO.LOW:
+        pass
+
+    start_time = time.time()
+    while GPIO.input(Sigpin) == GPIO.HIGH:
+        pass
+
+    pulse_duraction = time.time() - start_time;
+    if pulse_duraction != 0:
+        frequency = 1 / pulse_duraction
+        v = int((frequency * 1e6) / 44.0/400000000)
+        v = round(v, 1)
+
+    print('속도', v)
+    return v
