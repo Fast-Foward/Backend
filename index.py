@@ -133,3 +133,6 @@ def measure_speed():
 
     print('속도', v)
     return v
+
+if __name__ == '__main__':
+    app.run(host='10.129.57.184', port=5000, debug=True)
